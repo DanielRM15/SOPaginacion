@@ -7,3 +7,6 @@ class BaseAlgorithm(ABC):
     @abstractmethod
     def select_victim_page(self, physical_memory):
         pass
+    
+    def advance(self):
+        pass
