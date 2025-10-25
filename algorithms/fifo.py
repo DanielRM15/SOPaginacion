@@ -10,7 +10,6 @@ class FIFO(BaseAlgorithm):
         
         for page in physical_memory:
             if page is not None:
-                # Buscar la página con el loaded_time más antiguo (menor)
                 if oldest_time is None or page.loaded_time < oldest_time:
                     oldest_time = page.loaded_time
                     oldest_page = page

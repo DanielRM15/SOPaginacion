@@ -47,9 +47,7 @@ class MainMenu(QMainWindow):
             num_operations = int(self.ui.operationCombo.currentText())
             file_path = self.ui.fileEdit.text().strip()
             
-            # Validar entrada
             if file_path:
-                # Usuario proporcionó un archivo
                 if not os.path.exists(file_path):
                     QMessageBox.warning(self, "Error", "El archivo seleccionado no existe")
                     return

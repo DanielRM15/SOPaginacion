@@ -44,7 +44,7 @@ class MMU:
         if page in self.virtual_memory:
             self.virtual_memory.remove(page)
         page.loaded_time = self.clock
-        page.last_access_time = self.clock  # Inicializar también last_access_time
+        page.last_access_time = self.clock 
 
     def new(self, pid, size):
         pages_needed = self.calculate_pages_needed(size)
