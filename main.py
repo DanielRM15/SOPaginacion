@@ -5,8 +5,9 @@ import sys
 import os
 
 class SimulationWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        # accept an optional parent so callers can pass a parent window
+        super().__init__(parent)
         self.ui = Ui_SimulationWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("Simulador de Paginación - Simulación")
