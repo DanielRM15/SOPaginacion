@@ -5,6 +5,7 @@ import sys
 import os
 
 from utils.operation_generator import OperationGenerator
+from gui.save_dialog import ask_save_generated
 
 class SimulationWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -56,9 +57,21 @@ class MainMenu(QMainWindow):
                     return
                 # TODO: Cargar y parsear operaciones desde archivo
             else:
-                # gen = OperationGenerator()
-                # operations = gen.generate_operations(num_processes, num_operations, seed)
-                pass
+                gen = OperationGenerator()
+                operations = gen.generate_operations(num_processes, num_operations, seed)
+                if ask_save_generated(self):
+                    save_path, _ = QFileDialog.getSaveFileName(
+                        self,
+                        "Guardar archivo de operaciones",
+                        "",
+                        "Archivos de simulación (*.page);;Todos los archivos (*.*)"
+                    )
+                    if save_path:
+                        try:
+                            gen.save_operations(operations, save_path)
+                            QMessageBox.information(self, "Guardado", f"Archivo guardado en: {save_path}")
+                        except Exception as e:
+                            QMessageBox.critical(self, "Error", f"No se pudo guardar el archivo: {e}")
             
             print(f"Semilla: {seed}, Algoritmo: {algorithm}, Procesos: {num_processes}, Operaciones: {num_operations}")
             self.simulation_window.show()

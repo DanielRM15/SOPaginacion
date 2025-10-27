@@ -6,6 +6,9 @@ class OperationGenerator:
         self.operations = []
 
     def generate_operations(self, num_processes, num_operations, seed=None):
+        # Reiniciar estado
+        self.pointers = []
+        self.operations = []
         random.seed(seed)
         ptr_counter = 1
         # Generar operaciones 'new' iniciales (uno para cada proceso)
@@ -61,3 +64,22 @@ class OperationGenerator:
             self.operations.append(operation)
 
         return self.operations
+
+    def save_operations(self, operations, file_path):
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                for op in operations:
+                    t = op.get('type')
+                    if t == 'new':
+                        f.write(f"new({op['pid']},{op['size']})\n")
+                    elif t == 'use':
+                        f.write(f"use({op['ptr']})\n")
+                    elif t == 'delete':
+                        f.write(f"delete({op['ptr']})\n")
+                    elif t == 'kill':
+                        f.write(f"kill({op['pid']})\n")
+                    else:
+                        # Operacion desconocida
+                        f.write(f"# unknown operation: {op}\n")
+        except Exception:
+            raise
