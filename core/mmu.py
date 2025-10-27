@@ -54,7 +54,8 @@ class MMU:
         self.next_ptr += 1
 
         for i in range(pages_needed):
-            page = Page(self.next_page_id, ptr, pid)
+            used_size = self.PAGE_SIZE if i < pages_needed - 1 else size - (pages_needed - 1) * self.PAGE_SIZE
+            page = Page(self.next_page_id, ptr, pid, used_size)
             self.page_map[self.next_page_id] = page
             created_pages.append(page)
             self.next_page_id += 1

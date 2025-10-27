@@ -127,11 +127,18 @@ class SimulationEngine:
         }
     
     def _calculate_fragmentation(self, mmu):
+        total_wasted_bytes = 0
 
-        #Hay que calcular fragmentacion en KB, por lo que tenemos que ver como
-        #hacemos para obtener la cantidad de memoria desperdiciada despues de un new
-        
-        return 0
+        for page in mmu.physical_memory:
+            if page is None:
+                continue
+            used = getattr(page, 'used_size', mmu.PAGE_SIZE)
+            wasted = mmu.PAGE_SIZE - used
+            if wasted > 0:
+                total_wasted_bytes += wasted
+
+        # Devolver Fragmentacion en KB
+        return total_wasted_bytes / 1024
     
     def _get_pages_info(self, mmu):
         pages_info = []
