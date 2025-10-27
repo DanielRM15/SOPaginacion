@@ -2,10 +2,6 @@ from PySide6.QtWidgets import QMessageBox
 
 
 def ask_save_generated(parent=None) -> bool:
-    """Show a Spanish Yes/No dialog asking whether to save generated instructions.
-
-    Returns True if the user clicked "Si", False otherwise.
-    """
     msg = QMessageBox(parent)
     msg.setWindowTitle("Guardar instrucciones")
     msg.setText("¿Desea guardar las instrucciones generadas en un archivo?")

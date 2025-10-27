@@ -6,6 +6,7 @@ import os
 
 from utils.operation_generator import OperationGenerator
 from gui.save_dialog import ask_save_generated
+from utils.op_parser import OperationParser
 
 class SimulationWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -55,7 +56,18 @@ class MainMenu(QMainWindow):
                 if not os.path.exists(file_path):
                     QMessageBox.warning(self, "Error", "El archivo seleccionado no existe")
                     return
-                # TODO: Cargar y parsear operaciones desde archivo
+                # Cargar y parsear operaciones desde archivo
+                try:
+                    parser = OperationParser()
+                    operations = parser.parse_file(file_path)
+
+                    # Imprimir operaciones cargadas en consola
+                    # print(f"Cargadas {len(operations)} operaciones desde: {file_path}")
+                    # for i, op in enumerate(operations, 1):
+                    #     print(f"{i}: {op}")
+                except Exception as e:
+                    QMessageBox.critical(self, "Error", f"No se pudieron parsear las operaciones: {e}")
+                    return
             else:
                 gen = OperationGenerator()
                 operations = gen.generate_operations(num_processes, num_operations, seed)
