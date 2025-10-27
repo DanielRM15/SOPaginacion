@@ -4,6 +4,8 @@ from gui.simulation import Ui_MainWindow as Ui_SimulationWindow
 import sys
 import os
 
+from utils.operation_generator import OperationGenerator
+
 class SimulationWindow(QMainWindow):
     def __init__(self, parent=None):
         # accept an optional parent so callers can pass a parent window
@@ -54,8 +56,8 @@ class MainMenu(QMainWindow):
                     return
                 # TODO: Cargar y parsear operaciones desde archivo
             else:
-                # Generar operaciones aleatorias
-                # TODO: Usar operation_generator.py con la semilla
+                # gen = OperationGenerator()
+                # operations = gen.generate_operations(num_processes, num_operations, seed)
                 pass
             
             print(f"Semilla: {seed}, Algoritmo: {algorithm}, Procesos: {num_processes}, Operaciones: {num_operations}")

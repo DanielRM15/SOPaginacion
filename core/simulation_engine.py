@@ -1,6 +1,9 @@
 from core.mmu import MMU
 from algorithms.opt import OPT
 from algorithms.fifo import FIFO
+from algorithms.second_chance import SecondChance
+from algorithms.mru import MRU
+from algorithms.rnd import RND
 
 class SimulationEngine:
     def __init__(self, operations, algorithm_name, seed=None):
@@ -25,8 +28,14 @@ class SimulationEngine:
     def _create_algorithm(self, algorithm_name, seed):
         if algorithm_name == "FIFO":
             return FIFO()
+        if algorithm_name == "SC":
+            return SecondChance()
+        if algorithm_name == "MRU":
+            return MRU()
+        if algorithm_name == "RND":
+            return RND()
         else:
-            return FIFO()
+            raise ValueError(f"Algoritmo desconocido: {algorithm_name}")
     
     def step(self):
         if self.is_finished or self.current_operation_index >= len(self.operations):
