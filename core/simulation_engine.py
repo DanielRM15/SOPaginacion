@@ -108,7 +108,6 @@ class SimulationEngine:
         thrashing_time = mmu.page_faults * 5
         thrashing_percent = (thrashing_time / mmu.clock * 100) if mmu.clock > 0 else 0
         
-        # ARREGLAR
         fragmentation_kb = self._calculate_fragmentation(mmu)
         
         return {
@@ -152,7 +151,8 @@ class SimulationEngine:
             if not page.is_in_memory and page in mmu.virtual_memory:
                 disk_addr = mmu.virtual_memory.index(page)
             
-            loaded_time = page.loaded_time if page.loaded_time is not None else 0
+            # loaded_time solo tiene sentido si la página esta en RAM
+            loaded_time = page.loaded_time if (page.is_in_memory and page.loaded_time is not None) else None
             
             mark = 'X' if page.reference_bit else ''
             

@@ -63,18 +63,18 @@ class MMU:
         for page in created_pages:
             slot = self.find_free_physical_slot()
             if slot is not None:
-                self.load_page_to_memory(page, slot)
                 self.page_hits += 1
                 self.clock += 1
+                self.load_page_to_memory(page, slot)
             else:
                 victim_page = self.algorithm.select_victim_page(self.physical_memory)
                 if victim_page is None:
                     raise RuntimeError("No se pudo encontrar una página víctima")
                 slot = victim_page.physical_address
                 self.move_page_to_virtual(victim_page)
-                self.load_page_to_memory(page, slot)
                 self.page_faults += 1
                 self.clock += 5
+                self.load_page_to_memory(page, slot)
             
         self.ptr_to_pages[ptr] = [page.page_id for page in created_pages]
         return ptr
@@ -98,9 +98,9 @@ class MMU:
                     slot = victim_page.physical_address
                     self.move_page_to_virtual(victim_page)
                 
-                self.load_page_to_memory(page, slot)
                 self.page_faults += 1
                 self.clock += 5
+                self.load_page_to_memory(page, slot)
             else:
                 self.page_hits += 1
                 self.clock += 1
@@ -108,7 +108,7 @@ class MMU:
             page.last_access_time = self.clock
             page.reference_bit = True
 
-    def delete(self, ptr):
+    def delete(self, ptr, count_time=True):
         if ptr not in self.ptr_to_pages:
             return
         
@@ -122,6 +122,9 @@ class MMU:
             del self.page_map[page_id]
         
         del self.ptr_to_pages[ptr]
+        
+        if count_time:
+            self.clock += 1
 
     def kill(self, pid):
         ptrs_to_delete = []
@@ -130,5 +133,7 @@ class MMU:
                 ptrs_to_delete.append(ptr)
         
         for ptr in ptrs_to_delete:
-            self.delete(ptr)
+            self.delete(ptr, count_time=False)
+        
+        self.clock += 1
         
