@@ -73,12 +73,16 @@ class SimulationWindow(QMainWindow):
         self.ui.label_44.setText(f"MMU - {alg_name}")
         
         # Actualizar tablas
-        self.update_page_table(self.ui.tableWidget, stats['opt_pages'])
-        self.update_page_table(self.ui.tableWidget_3, stats['selected_pages'])
-    
-    def update_page_table(self, table, pages_info):
+        self.update_page_table(self.ui.tableWidget, stats['opt_pages'], current_clock=self.engine.mmu_opt.clock)
+        self.update_page_table(self.ui.tableWidget_3, stats['selected_pages'], current_clock=self.engine.mmu_selected.clock)
 
-        current_clock = self.engine.mmu_opt.clock  #MMUs tienen el mismo clock
+        # Resaltar thrashing > 50%
+        opt_thrashing_style = "color: red; font-weight: bold;" if opt_stats['thrashing_percent'] > 50 else ""
+        sel_thrashing_style = "color: red; font-weight: bold;" if sel_stats['thrashing_percent'] > 50 else ""
+        self.ui.label_15.setStyleSheet(opt_thrashing_style)
+        self.ui.label_45.setStyleSheet(sel_thrashing_style)
+    
+    def update_page_table(self, table, pages_info, current_clock):
         
         table.setRowCount(len(pages_info))
         

@@ -1,5 +1,5 @@
 class Page:
-    def __init__(self, page_id: int, ptr: int, pid: int, used_size: int):
+    def __init__(self, page_id: int, ptr: int, pid: int, used_size: int = 4096):
         self.page_id = page_id
         self.ptr = ptr
         self.pid = pid

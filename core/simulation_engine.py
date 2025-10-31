@@ -26,16 +26,16 @@ class SimulationEngine:
         self.active_processes = set()
     
     def _create_algorithm(self, algorithm_name, seed):
-        if algorithm_name == "FIFO":
+        name = (algorithm_name or "").strip().lower()
+        if name in ("fifo"):
             return FIFO()
-        if algorithm_name == "SC":
+        if name in ("sc", "secondchance", "second chance"):
             return SecondChance()
-        if algorithm_name == "MRU":
+        if name in ("mru"):
             return MRU()
-        if algorithm_name == "RND":
-            return RND()
-        else:
-            raise ValueError(f"Algoritmo desconocido: {algorithm_name}")
+        if name in ("rnd", "random"):
+            return RND(seed=seed)
+        raise ValueError(f"Algoritmo desconocido: {algorithm_name}")
     
     def step(self):
         if self.is_finished or self.current_operation_index >= len(self.operations):
@@ -128,9 +128,7 @@ class SimulationEngine:
     def _calculate_fragmentation(self, mmu):
         total_wasted_bytes = 0
 
-        for page in mmu.physical_memory:
-            if page is None:
-                continue
+        for page in mmu.page_map.values():
             used = getattr(page, 'used_size', mmu.PAGE_SIZE)
             wasted = mmu.PAGE_SIZE - used
             if wasted > 0:

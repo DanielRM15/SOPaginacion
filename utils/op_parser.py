@@ -27,7 +27,7 @@ class OperationParser:
         return operations
     
     def parse_line(self, line):
-        new_match = re.match(r'new\((\d+),(\d+)\)', line)
+        new_match = re.match(r'new\(\s*(\d+)\s*,\s*(\d+)\s*\)', line)
         if new_match:
             return {
                 'type': 'new',
@@ -35,21 +35,21 @@ class OperationParser:
                 'size': int(new_match.group(2))
             }
         
-        use_match = re.match(r'use\((\d+)\)', line)
+        use_match = re.match(r'use\(\s*(\d+)\s*\)', line)
         if use_match:
             return {
                 'type': 'use', 
                 'ptr': int(use_match.group(1))
             }
         
-        delete_match = re.match(r'delete\((\d+)\)', line)
+        delete_match = re.match(r'delete\(\s*(\d+)\s*\)', line)
         if delete_match:
             return {
                 'type': 'delete',
                 'ptr': int(delete_match.group(1))
             }
         
-        kill_match = re.match(r'kill\((\d+)\)', line)
+        kill_match = re.match(r'kill\(\s*(\d+)\s*\)', line)
         if kill_match:
             return {
                 'type': 'kill',
