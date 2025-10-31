@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTableWidgetItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTableWidgetItem, QHBoxLayout, QFrame
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QColor, QBrush
 from gui.mainMenu_ui import Ui_MainWindow
 from gui.simulation import Ui_MainWindow as Ui_SimulationWindow
 import sys
@@ -22,6 +23,7 @@ class SimulationWindow(QMainWindow):
         
         # Estado
         self.is_paused = False
+        self.pid_colors = {}
         
         # Timer
         self.timer = QTimer(self)
@@ -32,6 +34,10 @@ class SimulationWindow(QMainWindow):
         self.ui.pushButton_2.clicked.connect(self.reset_simulation)  # Reiniciar
         self.ui.pushButton_3.clicked.connect(self.go_back)  # Volver
         
+        # Inicializar grillas de RAM (100 celdas por RAM)
+        self.opt_ram_cells = self._init_ram_grid(self.ui.frame_2)
+        self.sel_ram_cells = self._init_ram_grid(self.ui.frame_3)
+
         # Actualizar display inicial
         self.update_display()
         
@@ -81,6 +87,9 @@ class SimulationWindow(QMainWindow):
         sel_thrashing_style = "color: red; font-weight: bold;" if sel_stats['thrashing_percent'] > 50 else ""
         self.ui.label_15.setStyleSheet(opt_thrashing_style)
         self.ui.label_45.setStyleSheet(sel_thrashing_style)
+
+        # Actualizar visualización de RAM
+        self._update_ram_frames()
     
     def update_page_table(self, table, pages_info, current_clock):
         
@@ -120,6 +129,11 @@ class SimulationWindow(QMainWindow):
             
             # Columna 7: MARK (Reference bit)
             table.setItem(row, 7, QTableWidgetItem(page['mark']))
+
+            # Colorear la fila según el PID
+            pid = page['pid']
+            color = self._get_color_for_pid(pid)
+            self._apply_row_color(table, row, color)
     
     def start_simulation(self):
         self.is_paused = False
@@ -170,6 +184,89 @@ class SimulationWindow(QMainWindow):
     def go_back(self):
         self.timer.stop()
         self.close()
+
+    def _init_ram_grid(self, frame: QFrame):
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(1)
+        frame.setLayout(layout)
+
+        cells = []
+        for _ in range(100):
+            cell = QFrame(frame)
+            cell.setObjectName("ramCell")
+            cell.setMinimumHeight(24)
+            cell.setStyleSheet("background-color: #e0e0e0; border: 1px solid #bdbdbd;")
+            layout.addWidget(cell, 1)
+            cells.append(cell)
+        return cells
+
+    def _get_color_for_pid(self, pid: int) -> QColor:
+        if pid not in self.pid_colors:
+            hue = (pid * 137) % 360
+            color = QColor()
+            color.setHsv(hue, 180, 220)
+            self.pid_colors[pid] = color
+        return self.pid_colors[pid]
+
+    def _apply_row_color(self, table, row: int, color: QColor):
+        r, g, b, _ = color.getRgb()
+        luminance = (0.299 * r + 0.587 * g + 0.114 * b)
+        text_color = QColor(0, 0, 0) if luminance > 140 else QColor(255, 255, 255)
+        brush_bg = QBrush(color)
+        brush_fg = QBrush(text_color)
+        col_count = table.columnCount()
+        for col in range(col_count):
+            item = table.item(row, col)
+            if item is None:
+                item = QTableWidgetItem("")
+                table.setItem(row, col, item)
+            item.setBackground(brush_bg)
+            item.setForeground(brush_fg)
+
+    def _update_ram_frames(self):
+        # OPT
+        opt_mem = getattr(self.engine.mmu_opt, 'physical_memory', [])
+        opt_clock = getattr(self.engine.mmu_opt, 'clock', 0)
+        for idx in range(min(100, len(self.opt_ram_cells))):
+            cell = self.opt_ram_cells[idx]
+            page = opt_mem[idx] if idx < len(opt_mem) else None
+            if page is None:
+                cell.setStyleSheet("background-color: #e0e0e0; border: 1px solid #bdbdbd;")
+                cell.setToolTip(f"Frame {idx}: vacío")
+            else:
+                color = self._get_color_for_pid(getattr(page, 'pid', 0))
+                hex_color = color.name()
+                cell.setStyleSheet(f"background-color: {hex_color}; border: 1px solid #424242;")
+                pid = getattr(page, 'pid', '?')
+                page_id = getattr(page, 'page_id', '?')
+                ptr = getattr(page, 'ptr', '?')
+                loaded_time = getattr(page, 'loaded_time', None)
+                t_loaded = (opt_clock - loaded_time) if (loaded_time is not None and opt_clock >= loaded_time) else None
+                t_loaded_str = f"{t_loaded}s" if t_loaded is not None else "-"
+                cell.setToolTip(f"Frame {idx}\nPID: {pid}\nPage: {page_id}\nPtr: {ptr}\nLoaded-T: {t_loaded_str}")
+
+        # Selected
+        sel_mem = getattr(self.engine.mmu_selected, 'physical_memory', [])
+        sel_clock = getattr(self.engine.mmu_selected, 'clock', 0)
+        for idx in range(min(100, len(self.sel_ram_cells))):
+            cell = self.sel_ram_cells[idx]
+            page = sel_mem[idx] if idx < len(sel_mem) else None
+            if page is None:
+                cell.setStyleSheet("background-color: #e0e0e0; border: 1px solid #bdbdbd;")
+                cell.setToolTip(f"Frame {idx}: vacío")
+            else:
+                color = self._get_color_for_pid(getattr(page, 'pid', 0))
+                hex_color = color.name()
+                cell.setStyleSheet(f"background-color: {hex_color}; border: 1px solid #424242;")
+                pid = getattr(page, 'pid', '?')
+                page_id = getattr(page, 'page_id', '?')
+                ptr = getattr(page, 'ptr', '?')
+                loaded_time = getattr(page, 'loaded_time', None)
+                t_loaded = (sel_clock - loaded_time) if (loaded_time is not None and sel_clock >= loaded_time) else None
+                t_loaded_str = f"{t_loaded}s" if t_loaded is not None else "-"
+                cell.setToolTip(f"Frame {idx}\nPID: {pid}\nPage: {page_id}\nPtr: {ptr}\nLoaded-T: {t_loaded_str}")
 
 class MainMenu(QMainWindow):
     def __init__(self):
